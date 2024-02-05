@@ -3,11 +3,34 @@ package services
 import (
 	"context"
 	"github.com/lcnssantos/rinha-de-backend/internal/domain"
+	"strconv"
 )
 
 type transactionService struct {
 	transactionRepository domain.TransactionRepository
 	customerRepository    domain.CustomerRepository
+}
+
+func (t transactionService) GetTransactions(ctx context.Context, id string) (domain.Customer, []domain.Transaction, error) {
+	_id, err := strconv.ParseUint(id, 10, 64)
+
+	if err != nil {
+		return domain.Customer{}, []domain.Transaction{}, err
+	}
+
+	customer, err := t.customerRepository.FindOne(ctx, _id)
+
+	if err != nil {
+		return domain.Customer{}, []domain.Transaction{}, err
+	}
+
+	transactions, err := t.transactionRepository.FindAll(ctx, _id)
+
+	if err != nil {
+		return domain.Customer{}, []domain.Transaction{}, err
+	}
+
+	return customer, transactions, nil
 }
 
 func (t transactionService) Create(ctx context.Context, id uint64, transaction domain.Transaction) (domain.Customer, error) {
