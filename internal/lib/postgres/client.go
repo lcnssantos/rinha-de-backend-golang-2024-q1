@@ -11,6 +11,14 @@ type poolConfig struct {
 	maxLifeTime time.Duration
 }
 
+func NewPoolConfig(maxIdle, maxOpen int, maxLifeTime time.Duration) poolConfig {
+	return poolConfig{
+		maxIdle,
+		maxOpen,
+		maxLifeTime,
+	}
+}
+
 func NewConfig(Host, Port, User, Password, Database, SSLMode string) config {
 	return config{
 		Host,

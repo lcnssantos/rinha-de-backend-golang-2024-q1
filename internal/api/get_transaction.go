@@ -44,10 +44,10 @@ type Statement struct {
 	LastTransactions []TransactionDto `json:"ultimas_transacoes"`
 }
 
-func (a Statement) FromDomain(customer domain.Customer, transactions []domain.Transaction) Statement {
-	var t []TransactionDto
+func (a Statement) FromDomain(customer domain.Customer) Statement {
+	t := []TransactionDto{}
 
-	for _, v := range transactions {
+	for _, v := range customer.Transactions {
 		t = append(t, TransactionDto{}.FromDomain(v))
 	}
 
@@ -61,7 +61,7 @@ func getTransactions(service domain.TransactionService) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		id := c.Param("id")
 
-		customer, transactions, err := service.GetTransactions(c.Request().Context(), id)
+		customer, err := service.GetTransactions(c.Request().Context(), id)
 
 		if err != nil {
 			if errors.Is(err, domain.ErrCustomerNotFound) {
@@ -87,6 +87,6 @@ func getTransactions(service domain.TransactionService) echo.HandlerFunc {
 			return c.JSON(prob.Status, prob)
 		}
 
-		return c.JSON(http.StatusOK, Statement{}.FromDomain(customer, transactions))
+		return c.JSON(http.StatusOK, Statement{}.FromDomain(customer))
 	}
 }

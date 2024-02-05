@@ -47,24 +47,22 @@ func createTransaction(transactionService domain.TransactionService) echo.Handle
 			logging.Error(e.Request().Context(), err).Msg("error to bind payload")
 
 			prob := problemdetails.New(
-				http.StatusBadRequest,
-				"BadRequest",
-				"BadRequest",
+				http.StatusUnprocessableEntity,
+				"UnprocessableEntity",
+				"Unprocessable entity",
 				err.Error(),
 				"",
 			)
 
-			e.JSON(http.StatusBadRequest, prob)
+			e.JSON(http.StatusUnprocessableEntity, prob)
 
 			return err
 		}
 
-		logging.Debug(e.Request().Context()).Interface("payload", payload).Msg("payload")
-
 		customer, err := transactionService.Create(e.Request().Context(), payload.ID, payload.ToDomain())
 
 		if err != nil {
-			logging.Error(e.Request().Context(), err).Msg("error to create transaction")
+			//logging.Error(e.Request().Context(), err).Msg("error to create transaction")
 
 			if errors.Is(err, gorm.ErrRecordNotFound) {
 				prob := problemdetails.New(

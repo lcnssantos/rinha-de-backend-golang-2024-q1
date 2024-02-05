@@ -3,6 +3,9 @@ package main
 import (
 	"context"
 	"fmt"
+	"os"
+	"time"
+
 	"github.com/go-playground/validator/v10"
 	"github.com/labstack/echo/v4"
 	"github.com/lcnssantos/rinha-de-backend/internal/api"
@@ -11,9 +14,7 @@ import (
 	"github.com/lcnssantos/rinha-de-backend/internal/lib/logging"
 	"github.com/lcnssantos/rinha-de-backend/internal/lib/postgres"
 	"github.com/lcnssantos/rinha-de-backend/internal/lib/rest"
-	"github.com/lcnssantos/rinha-de-backend/internal/repositories"
 	"github.com/lcnssantos/rinha-de-backend/internal/services"
-	"os"
 )
 
 func main() {
@@ -37,7 +38,7 @@ func main() {
 			environmentVariables.DatabaseName,
 			environmentVariables.DatabaseSSLMode,
 		),
-	)
+	).WithPoolConfig(postgres.NewPoolConfig(6, 6, time.Minute))
 
 	err = pg.Connect()
 
@@ -61,12 +62,9 @@ func main() {
 		Validator: validator.New(),
 	}
 
-	transactionRepository := repositories.NewTransaction(pg.DB().Debug())
-	customerRepository := repositories.NewCustomer(pg.DB().Debug())
+	transactionService := services.NewTransactionService(pg.DB())
 
-	transactionService := services.NewTransactionService(transactionRepository, customerRepository)
-
-	api.RoutesFactory(transactionService)(e.Group(""))
+	api.RoutesFactory(transactionService, pg)(e.Group(""))
 
 	routes := e.Routes()
 

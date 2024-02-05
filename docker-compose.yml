@@ -1,6 +1,51 @@
 version: "3"
 
 services:
+  api01: &api
+    build:
+      context: .
+    hostname: api01
+    environment:
+      - ENVIRONMENT=local
+      - DB_HOST=postgres
+      - DB_USER=postgres
+      - DB_PASS=postgres
+      - DB_PORT=5432
+      - DB_SSL_MODE=disable
+      - DB_NAME=postgres
+      - PORT=3000
+      - LOG_LEVEL=info
+    restart: on-failure
+    ports:
+      - "3001:3000"
+    depends_on:
+      - postgres
+    deploy:
+      resources:
+        limits:
+          cpus: "0.25"
+          memory: "100MB"
+  api02:
+    <<: *api
+    hostname: api02
+    ports:
+      - "3002:3000"
+
+  nginx:
+    image: nginx:latest
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      - api01
+      - api02
+    ports:
+      - "9999:9999"
+    deploy:
+      resources:
+        limits:
+          cpus: "0.15"
+          memory: "25MB"
+
   postgres:
     image: postgres:alpine
     container_name: postgres-development-rinha
@@ -11,3 +56,9 @@ services:
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=postgres
       - POSTGRES_DB=postgres
+    command: ["postgres", "-c", "log_statement=none"]
+    deploy:
+      resources:
+        limits:
+          cpus: "0.85"
+          memory: "325MB"

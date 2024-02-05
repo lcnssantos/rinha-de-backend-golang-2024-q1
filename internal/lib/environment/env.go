@@ -9,13 +9,9 @@ import (
 func LoadEnvironment[T any](dotenvPaths ...string) (T, error) {
 	out := new(T)
 
-	err := godotenv.Load(dotenvPaths...)
+	godotenv.Load(dotenvPaths...)
 
-	if err != nil {
-		return *out, err
-	}
-
-	err = env.Parse(out)
+	err := env.Parse(out)
 
 	if err != nil {
 		return *out, err

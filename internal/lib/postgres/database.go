@@ -1,18 +1,22 @@
 package postgres
 
 import (
+	"context"
 	"errors"
+	"time"
+
 	"github.com/golang-migrate/migrate/v4"
+	"github.com/lcnssantos/rinha-de-backend/internal/lib/logging"
 
 	"github.com/golang-migrate/migrate/v4/database/postgres"
 	_ "github.com/golang-migrate/migrate/v4/source/file"
 	gormpostgres "gorm.io/driver/postgres"
 	"gorm.io/gorm"
+	"gorm.io/gorm/logger"
 )
 
 type Postgres interface {
 	MigrateUp(path string) error
-	MigrateDown(path string) error
 	Connect() error
 	DB() *gorm.DB
 	WithPoolConfig(poolConfig poolConfig) Postgres
@@ -68,44 +72,15 @@ func (p *postgresClientImpl) MigrateUp(path string) error {
 	return nil
 }
 
-func (p *postgresClientImpl) MigrateDown(path string) error {
-	sqlInstance, err := p.db.DB()
-
-	if err != nil {
-		return err
-	}
-
-	driver, err := postgres.WithInstance(sqlInstance, &postgres.Config{})
-
-	if err != nil {
-		return err
-	}
-
-	m, err := migrate.NewWithDatabaseInstance(
-		path,
-		p.config.Database,
-		driver,
-	)
-
-	if err != nil {
-		return err
-	}
-
-	err = m.Down()
-
-	if err != nil && !errors.Is(err, migrate.ErrNoChange) {
-		return err
-	}
-
-	return nil
-}
-
 func (p *postgresClientImpl) DB() *gorm.DB {
 	return p.db
 }
 
 func (p *postgresClientImpl) Connect() error {
-	db, err := gorm.Open(gormpostgres.Open(p.config.string()), &gorm.Config{})
+	db, err := gorm.Open(gormpostgres.Open(p.config.string()), &gorm.Config{
+		SkipDefaultTransaction: true,
+		Logger:                 logger.Default.LogMode(logger.Silent),
+	})
 
 	if err != nil {
 		return err
@@ -135,6 +110,15 @@ func (p *postgresClientImpl) Connect() error {
 		sqlDB.SetMaxIdleConns(p.poolConfig.maxIdle)
 		sqlDB.SetMaxOpenConns(p.poolConfig.maxOpen)
 		sqlDB.SetConnMaxLifetime(p.poolConfig.maxLifeTime)
+
+		go func() {
+			for {
+				<-time.After(10 * time.Second)
+				openConnections := sqlDB.Stats().OpenConnections
+
+				logging.Info(context.Background()).Msgf("Open connections: %d", openConnections)
+			}
+		}()
 	}
 
 	return nil
