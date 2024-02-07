@@ -10,7 +10,7 @@ on:
     branches: [main]
 jobs:
   release:
-    name: Release
+    name: release
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -52,5 +52,6 @@ jobs:
           LATEST_TAG=$(git describe --tags `git rev-list --tags --max-count=1`)
           docker login -u ${{ secrets.DOCKERHUB_USERNAME }} -p ${{ secrets.DOCKERHUB_TOKEN }}
           git checkout $LATEST_TAG
-          docker build -t gorinhadebackend:$LATEST_TAG .
-          docker push gorinhadebackend:$LATEST_TAG
+          docker build -t lcnssantos/gorinhadebackend:$LATEST_TAG -t lcnssantos/gorinhadebackend:latest .
+          docker push lcnssantos/gorinhadebackend:$LATEST_TAG
+          docker push lcnssantos/gorinhadebackend:latest
