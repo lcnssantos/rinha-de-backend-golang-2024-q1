@@ -50,5 +50,7 @@ jobs:
       - name: Build Docker image
         run: |
           LATEST_TAG=$(git describe --tags `git rev-list --tags --max-count=1`)
+          docker login -u ${{ secrets.DOCKERHUB_USERNAME }} -p ${{ secrets.DOCKERHUB_TOKEN }}
           git checkout $LATEST_TAG
           docker build -t gorinhadebackend:$LATEST_TAG .
+          docker push gorinhadebackend:$LATEST_TAG
