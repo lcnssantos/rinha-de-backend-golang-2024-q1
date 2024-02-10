@@ -6,3 +6,5 @@ CREATE TABLE customers
     CONSTRAINT customer_limit_check CHECK (-amount <= "limit")
 );
 
+ALTER DATABASE postgres SET log_error_verbosity to 'TERSE';
+

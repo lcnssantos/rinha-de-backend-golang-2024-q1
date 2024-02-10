@@ -2,8 +2,9 @@ package services
 
 import (
 	"context"
-	"gorm.io/gorm/clause"
 	"strconv"
+
+	"gorm.io/gorm/clause"
 
 	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/lcnssantos/rinha-de-backend/internal/domain"
@@ -38,13 +39,19 @@ func (t transactionService) Create(ctx context.Context, id uint64, transaction d
 	var customer domain.Customer
 
 	err := t.gorm.Transaction(func(tx *gorm.DB) error {
+		err := tx.WithContext(ctx).Exec("SET LOCAL log_statement = 'none'").Error
+
+		if err != nil {
+			return err
+		}
+
 		expression := "amount + ?"
 
 		if transaction.Type == domain.TransactionTypeDebit {
 			expression = "amount - ?"
 		}
 
-		err := tx.WithContext(ctx).
+		err = tx.WithContext(ctx).
 			Model(&customer).
 			Clauses(clause.Returning{
 				Columns: []clause.Column{

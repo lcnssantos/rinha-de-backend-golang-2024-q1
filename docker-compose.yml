@@ -1,9 +1,10 @@
-version: "3"
+version: "3.8"
 
 services:
   api01: &api
     build:
       context: .
+    container_name: api-rinha-go-01
     hostname: api01
     environment:
       - ENVIRONMENT=local
@@ -12,12 +13,10 @@ services:
       - DB_PASS=postgres
       - DB_PORT=5432
       - DB_SSL_MODE=disable
-      - DB_NAME=postgres
+      - DB_NAME=rinha
       - PORT=3000
       - LOG_LEVEL=info
     restart: on-failure
-    ports:
-      - "3001:3000"
     depends_on:
       - postgres
     deploy:
@@ -27,12 +26,12 @@ services:
           memory: "100MB"
   api02:
     <<: *api
+    container_name: api-rinha-go-02
     hostname: api02
-    ports:
-      - "3002:3000"
 
   nginx:
     image: nginx:latest
+    container_name: nginx-rinha-go
     volumes:
       - ./nginx.conf:/etc/nginx/nginx.conf:ro
     depends_on:
@@ -48,15 +47,17 @@ services:
 
   postgres:
     image: postgres:alpine
-    container_name: postgres-development-rinha
+    container_name: postgres-rinha-go
     hostname: postgres
+    command: postgres -c 'log_error_verbosity=terse' -c 'log_min_error_statement=PANIC' -c 'log_min_messages=PANIC'
+    logging:
+      driver: syslog
     ports:
       - 5432:5432
     environment:
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=postgres
-      - POSTGRES_DB=postgres
-    command: ["postgres", "-c", "log_statement=none"]
+      - POSTGRES_DB=rinha
     deploy:
       resources:
         limits:

@@ -3,6 +3,8 @@ package postgres
 import (
 	"context"
 	"errors"
+	"log"
+	"os"
 	"time"
 
 	"github.com/golang-migrate/migrate/v4"
@@ -79,7 +81,15 @@ func (p *postgresClientImpl) DB() *gorm.DB {
 func (p *postgresClientImpl) Connect() error {
 	db, err := gorm.Open(gormpostgres.Open(p.config.string()), &gorm.Config{
 		SkipDefaultTransaction: true,
-		Logger:                 logger.Default.LogMode(logger.Silent),
+		Logger: logger.New(
+			log.New(os.Stdout, "\r\n", log.LstdFlags), logger.Config{
+				SlowThreshold:             time.Second,   // Slow SQL threshold
+				LogLevel:                  logger.Silent, // Log level
+				IgnoreRecordNotFoundError: true,          // Ignore ErrRecordNotFound error for logger
+				ParameterizedQueries:      true,          // Don't include params in the SQL log
+				Colorful:                  false,         // Disable color
+			},
+		),
 	})
 
 	if err != nil {
