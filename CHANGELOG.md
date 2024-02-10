@@ -1,3 +1,10 @@
+# [1.1.0](https://github.com/lcnssantos/rinha-de-backend/compare/v1.0.0...v1.1.0) (2024-02-10)
+
+
+### Features
+
+* some tweaks and add consistency view ([bdf6e60](https://github.com/lcnssantos/rinha-de-backend/commit/bdf6e6030e4f175454251a11fe9d7b4d9095d740))
+
 # 1.0.0 (2024-02-07)
 
 
