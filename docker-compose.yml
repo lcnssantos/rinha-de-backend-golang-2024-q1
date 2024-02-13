@@ -24,8 +24,8 @@ services:
     deploy:
       resources:
         limits:
-          cpus: "0.25"
-          memory: "50MB"
+          cpus: "0.30"
+          memory: "75MB"
   api02:
     <<: *api
     container_name: api-rinha-go-02
@@ -46,7 +46,7 @@ services:
       resources:
         limits:
           cpus: "0.15"
-          memory: "100MB"
+          memory: "50MB"
 
   postgres:
     image: postgres:alpine
@@ -62,5 +62,5 @@ services:
     deploy:
       resources:
         limits:
-          cpus: "0.95"
-          memory: "200MB"
+          cpus: "0.75"
+          memory: "350MB"
