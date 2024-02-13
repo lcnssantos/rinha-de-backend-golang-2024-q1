@@ -29,6 +29,8 @@ func main() {
 		return
 	}
 
+	poolConfig := postgres.NewPoolConfig(environmentVariables.DatabasePoolMinimum, environmentVariables.DatabasePoolMaximum, time.Second)
+
 	pg := postgres.New(
 		postgres.NewConfig(
 			environmentVariables.DatabaseHost,
@@ -38,7 +40,7 @@ func main() {
 			environmentVariables.DatabaseName,
 			environmentVariables.DatabaseSSLMode,
 		),
-	).WithPoolConfig(postgres.NewPoolConfig(6, 6, time.Minute))
+	).WithPoolConfig(poolConfig)
 
 	err = pg.Connect()
 
@@ -57,6 +59,7 @@ func main() {
 	}
 
 	e := echo.New()
+
 	e.HideBanner = true
 	e.Validator = &rest.CustomValidator{
 		Validator: validator.New(),

@@ -2,11 +2,11 @@ package api
 
 import (
 	"errors"
-	"github.com/labstack/echo/v4"
-	"github.com/lcnssantos/rinha-de-backend/internal/domain"
-	"github.com/mvmaasakkers/go-problemdetails"
 	"net/http"
 	"time"
+
+	"github.com/labstack/echo/v4"
+	"github.com/lcnssantos/rinha-de-backend/internal/domain"
 )
 
 type TransactionDto struct {
@@ -65,26 +65,10 @@ func getTransactions(service domain.TransactionService) echo.HandlerFunc {
 
 		if err != nil {
 			if errors.Is(err, domain.ErrCustomerNotFound) {
-				prob := problemdetails.New(
-					http.StatusNotFound,
-					"CustomerNotFound",
-					"Customer not found",
-					err.Error(),
-					"",
-				)
-
-				return c.JSON(prob.Status, prob)
+				return c.NoContent(http.StatusNotFound)
 			}
 
-			prob := problemdetails.New(
-				http.StatusInternalServerError,
-				"InternalError",
-				"Internal error",
-				"",
-				"",
-			)
-
-			return c.JSON(prob.Status, prob)
+			return c.NoContent(http.StatusInternalServerError)
 		}
 
 		return c.JSON(http.StatusOK, Statement{}.FromDomain(customer))

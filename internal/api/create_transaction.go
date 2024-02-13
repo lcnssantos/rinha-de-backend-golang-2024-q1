@@ -2,13 +2,12 @@ package api
 
 import (
 	"errors"
+	"net/http"
+
 	"github.com/labstack/echo/v4"
 	"github.com/lcnssantos/rinha-de-backend/internal/domain"
-	"github.com/lcnssantos/rinha-de-backend/internal/lib/logging"
 	"github.com/lcnssantos/rinha-de-backend/internal/lib/rest"
-	"github.com/mvmaasakkers/go-problemdetails"
 	"gorm.io/gorm"
-	"net/http"
 )
 
 type createTransactionDto struct {
@@ -44,17 +43,7 @@ func createTransaction(transactionService domain.TransactionService) echo.Handle
 		payload, err := rest.Bind[createTransactionDto](e)
 
 		if err != nil {
-			logging.Error(e.Request().Context(), err).Msg("error to bind payload")
-
-			prob := problemdetails.New(
-				http.StatusUnprocessableEntity,
-				"UnprocessableEntity",
-				"Unprocessable entity",
-				err.Error(),
-				"",
-			)
-
-			e.JSON(http.StatusUnprocessableEntity, prob)
+			e.NoContent(http.StatusUnprocessableEntity)
 
 			return err
 		}
@@ -62,44 +51,18 @@ func createTransaction(transactionService domain.TransactionService) echo.Handle
 		customer, err := transactionService.Create(e.Request().Context(), payload.ID, payload.ToDomain())
 
 		if err != nil {
-			//logging.Error(e.Request().Context(), err).Msg("error to create transaction")
-
 			if errors.Is(err, gorm.ErrRecordNotFound) {
-				prob := problemdetails.New(
-					http.StatusNotFound,
-					"CustomerNotFound",
-					"Customer not found",
-					"",
-					"",
-				)
-
-				e.JSON(http.StatusNotFound, prob)
+				e.NoContent(http.StatusNotFound)
 
 				return err
 			}
 
 			if errors.Is(err, domain.ErrLimitExceeded) {
-				prob := problemdetails.New(
-					http.StatusUnprocessableEntity,
-					"LimitExceeded",
-					"Limit exceeded",
-					"",
-					"",
-				)
-
-				e.JSON(http.StatusUnprocessableEntity, prob)
+				e.NoContent(http.StatusUnprocessableEntity)
 				return err
 			}
 
-			prob := problemdetails.New(
-				http.StatusInternalServerError,
-				"InternalServerError",
-				"Internal server error",
-				"",
-				"",
-			)
-
-			e.JSON(http.StatusInternalServerError, prob)
+			e.NoContent(http.StatusInternalServerError)
 			return err
 		}
 

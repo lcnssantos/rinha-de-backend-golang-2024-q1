@@ -16,6 +16,8 @@ services:
       - DB_NAME=rinha
       - PORT=3000
       - LOG_LEVEL=info
+      - DB_POOL_MINIMUM=6
+      - DB_POOL_MAXIMUM=6
     restart: on-failure
     depends_on:
       - postgres
@@ -23,7 +25,7 @@ services:
       resources:
         limits:
           cpus: "0.25"
-          memory: "100MB"
+          memory: "50MB"
   api02:
     <<: *api
     container_name: api-rinha-go-02
@@ -39,19 +41,18 @@ services:
       - api02
     ports:
       - "9999:9999"
+    restart: on-failure
     deploy:
       resources:
         limits:
           cpus: "0.15"
-          memory: "25MB"
+          memory: "100MB"
 
   postgres:
     image: postgres:alpine
     container_name: postgres-rinha-go
     hostname: postgres
     command: postgres -c 'log_error_verbosity=terse' -c 'log_min_error_statement=PANIC' -c 'log_min_messages=PANIC'
-    logging:
-      driver: syslog
     ports:
       - 5432:5432
     environment:
@@ -61,5 +62,5 @@ services:
     deploy:
       resources:
         limits:
-          cpus: "0.85"
-          memory: "325MB"
+          cpus: "0.95"
+          memory: "200MB"
