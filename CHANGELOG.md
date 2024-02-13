@@ -1,3 +1,10 @@
+## [1.1.1](https://github.com/lcnssantos/rinha-de-backend/compare/v1.1.0...v1.1.1) (2024-02-13)
+
+
+### Bug Fixes
+
+* not return json payloads and add envs to control database pool size ([a1ed8fc](https://github.com/lcnssantos/rinha-de-backend/commit/a1ed8fcc96e2b0532e0940c643c96e2135880125))
+
 # [1.1.0](https://github.com/lcnssantos/rinha-de-backend/compare/v1.0.0...v1.1.0) (2024-02-10)
 
 
