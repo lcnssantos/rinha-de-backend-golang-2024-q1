@@ -1,3 +1,10 @@
+# [1.2.0](https://github.com/lcnssantos/rinha-de-backend-golang-2024-q1/compare/v1.1.1...v1.2.0) (2024-02-16)
+
+
+### Features
+
+* upgrade to fiber ([2bd7cc3](https://github.com/lcnssantos/rinha-de-backend-golang-2024-q1/commit/2bd7cc364af540cf5aa1d4e3a09b803ec300b1a2))
+
 ## [1.1.1](https://github.com/lcnssantos/rinha-de-backend/compare/v1.1.0...v1.1.1) (2024-02-13)
 
 
