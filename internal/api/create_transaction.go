@@ -2,16 +2,16 @@ package api
 
 import (
 	"errors"
+	"github.com/gofiber/fiber/v2"
 	"net/http"
 
-	"github.com/labstack/echo/v4"
 	"github.com/lcnssantos/rinha-de-backend/internal/domain"
 	"github.com/lcnssantos/rinha-de-backend/internal/lib/rest"
 	"gorm.io/gorm"
 )
 
 type createTransactionDto struct {
-	ID          uint64                 `param:"id" validate:"required,gt=0"`
+	//ID          uint64                 `param:"id" validate:"required,gt=0"`
 	Amount      uint32                 `json:"valor" validate:"required,gt=0"`
 	Type        domain.TransactionType `json:"tipo" validate:"required,oneof=c d"`
 	Description string                 `json:"descricao" validate:"required,max=10,min=1"`
@@ -29,44 +29,46 @@ func (c customerDto) FromDomain(d domain.Customer) customerDto {
 	}
 }
 
-func (c createTransactionDto) ToDomain() domain.Transaction {
+func (c createTransactionDto) ToDomain(id int) domain.Transaction {
 	return domain.Transaction{
 		Amount:      c.Amount,
 		Type:        c.Type,
 		Description: c.Description,
-		CustomerID:  c.ID,
+		CustomerID:  id,
 	}
 }
 
-func createTransaction(transactionService domain.TransactionService) echo.HandlerFunc {
-	return func(e echo.Context) error {
-		payload, err := rest.Bind[createTransactionDto](e)
+func createTransaction(transactionService domain.TransactionService) fiber.Handler {
+	return func(c *fiber.Ctx) error {
+		ctx := c.Context()
+
+		id, err := c.ParamsInt("id")
 
 		if err != nil {
-			e.NoContent(http.StatusUnprocessableEntity)
-
-			return err
+			return c.SendStatus(http.StatusUnprocessableEntity)
 		}
 
-		customer, err := transactionService.Create(e.Request().Context(), payload.ID, payload.ToDomain())
+		payload, err := rest.Bind[createTransactionDto](c)
+
+		if err != nil {
+			return c.SendStatus(http.StatusUnprocessableEntity)
+		}
+
+		customer, err := transactionService.Create(ctx, id, payload.ToDomain(id))
 
 		if err != nil {
 			if errors.Is(err, gorm.ErrRecordNotFound) {
-				e.NoContent(http.StatusNotFound)
-
-				return err
+				return c.SendStatus(http.StatusNotFound)
 			}
 
 			if errors.Is(err, domain.ErrLimitExceeded) {
-				e.NoContent(http.StatusUnprocessableEntity)
-				return err
+				return c.SendStatus(http.StatusUnprocessableEntity)
 			}
 
-			e.NoContent(http.StatusInternalServerError)
-			return err
+			return c.SendStatus(http.StatusInternalServerError)
 		}
 
-		e.JSON(http.StatusOK, customerDto{}.FromDomain(customer))
+		c.Status(http.StatusOK).JSON(customerDto{}.FromDomain(*customer))
 
 		return nil
 	}

@@ -1,20 +1,23 @@
 package rest
 
 import (
+	"github.com/go-playground/validator/v10"
 	"net/http"
 
-	"github.com/labstack/echo/v4"
+	"github.com/gofiber/fiber/v2"
 )
 
-func Bind[T any](c echo.Context) (T, error) {
+var _validator = validator.New()
+
+func Bind[T any](c *fiber.Ctx) (T, error) {
 	var t T
 
-	if err := c.Bind(&t); err != nil {
-		return t, echo.NewHTTPError(http.StatusBadRequest, err.Error())
+	if err := c.BodyParser(&t); err != nil {
+		return t, fiber.NewError(http.StatusUnprocessableEntity, err.Error())
 	}
 
-	if err := c.Validate(t); err != nil {
-		return t, echo.NewHTTPError(http.StatusBadRequest, err.Error())
+	if err := _validator.Struct(t); err != nil {
+		return t, fiber.NewError(http.StatusUnprocessableEntity, err.Error())
 	}
 
 	return t, nil

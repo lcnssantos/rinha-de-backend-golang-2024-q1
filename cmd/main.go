@@ -6,14 +6,12 @@ import (
 	"os"
 	"time"
 
-	"github.com/go-playground/validator/v10"
-	"github.com/labstack/echo/v4"
+	"github.com/gofiber/fiber/v2"
 	"github.com/lcnssantos/rinha-de-backend/internal/api"
 	"github.com/lcnssantos/rinha-de-backend/internal/env"
 	"github.com/lcnssantos/rinha-de-backend/internal/lib/environment"
 	"github.com/lcnssantos/rinha-de-backend/internal/lib/logging"
 	"github.com/lcnssantos/rinha-de-backend/internal/lib/postgres"
-	"github.com/lcnssantos/rinha-de-backend/internal/lib/rest"
 	"github.com/lcnssantos/rinha-de-backend/internal/services"
 )
 
@@ -58,18 +56,13 @@ func main() {
 		return
 	}
 
-	e := echo.New()
-
-	e.HideBanner = true
-	e.Validator = &rest.CustomValidator{
-		Validator: validator.New(),
-	}
+	app := fiber.New()
 
 	transactionService := services.NewTransactionService(pg.DB())
 
-	api.RoutesFactory(transactionService, pg)(e.Group(""))
+	api.RoutesFactory(transactionService, pg)(app.Group(""))
 
-	routes := e.Routes()
+	routes := app.GetRoutes()
 
 	for _, route := range routes {
 		logging.Info(ctx).
@@ -78,7 +71,7 @@ func main() {
 			Msg("route settled")
 	}
 
-	err = e.Start(fmt.Sprintf(":%s", environmentVariables.Port))
+	err = app.Listen(fmt.Sprintf(":%s", environmentVariables.Port))
 
 	if err != nil {
 		logging.Panic(ctx, err).Msg("error to start http server")

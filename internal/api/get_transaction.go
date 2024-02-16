@@ -2,10 +2,10 @@ package api
 
 import (
 	"errors"
+	"github.com/gofiber/fiber/v2"
 	"net/http"
 	"time"
 
-	"github.com/labstack/echo/v4"
 	"github.com/lcnssantos/rinha-de-backend/internal/domain"
 )
 
@@ -57,20 +57,27 @@ func (a Statement) FromDomain(customer domain.Customer) Statement {
 	}
 }
 
-func getTransactions(service domain.TransactionService) echo.HandlerFunc {
-	return func(c echo.Context) error {
-		id := c.Param("id")
+func getTransactions(service domain.TransactionService) fiber.Handler {
+	return func(c *fiber.Ctx) error {
+		ctx := c.Context()
 
-		customer, err := service.GetTransactions(c.Request().Context(), id)
+		id, err := c.ParamsInt("id")
+
+		if err != nil {
+			return c.SendStatus(http.StatusInternalServerError)
+		}
+
+		customer, err := service.GetTransactions(ctx, id)
 
 		if err != nil {
 			if errors.Is(err, domain.ErrCustomerNotFound) {
-				return c.NoContent(http.StatusNotFound)
+				return c.SendStatus(http.StatusNotFound)
 			}
 
-			return c.NoContent(http.StatusInternalServerError)
+			return c.SendStatus(http.StatusInternalServerError)
 		}
 
-		return c.JSON(http.StatusOK, Statement{}.FromDomain(customer))
+		return c.Status(http.StatusOK).JSON(Statement{}.FromDomain(*customer))
 	}
+
 }

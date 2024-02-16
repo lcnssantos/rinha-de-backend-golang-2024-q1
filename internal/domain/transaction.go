@@ -17,7 +17,7 @@ const (
 type Transaction struct {
 	ID          uint64          `json:"id" gorm:"primaryKey"`
 	Amount      uint32          `json:"amount"`
-	CustomerID  uint64          `json:"customer_id" gorm:"foreignKey:CustomerID"`
+	CustomerID  int             `json:"customer_id" gorm:"foreignKey:CustomerID"`
 	Description string          `json:"description"`
 	Type        TransactionType `json:"type"`
 	CreatedAt   time.Time       `json:"created_at"`
@@ -29,6 +29,6 @@ func (t Transaction) BeforeCreate(tx *gorm.DB) error {
 }
 
 type TransactionService interface {
-	Create(context.Context, uint64, Transaction) (Customer, error)
-	GetTransactions(ctx context.Context, id string) (Customer, error)
+	Create(context.Context, int, Transaction) (*Customer, error)
+	GetTransactions(ctx context.Context, id int) (*Customer, error)
 }

@@ -2,8 +2,6 @@ package services
 
 import (
 	"context"
-	"strconv"
-
 	"gorm.io/gorm/clause"
 
 	"github.com/jackc/pgx/v5/pgconn"
@@ -15,27 +13,21 @@ type transactionService struct {
 	gorm *gorm.DB
 }
 
-func (t transactionService) GetTransactions(ctx context.Context, id string) (domain.Customer, error) {
-	_id, err := strconv.ParseUint(id, 10, 64)
-
-	if err != nil {
-		return domain.Customer{}, err
-	}
-
+func (t transactionService) GetTransactions(ctx context.Context, id int) (*domain.Customer, error) {
 	var customer domain.Customer
 
-	err = t.gorm.WithContext(ctx).Preload("Transactions", func(tx *gorm.DB) *gorm.DB {
+	err := t.gorm.WithContext(ctx).Preload("Transactions", func(tx *gorm.DB) *gorm.DB {
 		return tx.Limit(10).Order("created_at DESC")
-	}).Where("id = ?", _id).First(&customer).Error
+	}).Where("id = ?", id).First(&customer).Error
 
 	if err != nil {
-		return domain.Customer{}, err
+		return nil, err
 	}
 
-	return customer, nil
+	return &customer, nil
 }
 
-func (t transactionService) Create(ctx context.Context, id uint64, transaction domain.Transaction) (domain.Customer, error) {
+func (t transactionService) Create(ctx context.Context, id int, transaction domain.Transaction) (*domain.Customer, error) {
 	var customer domain.Customer
 
 	err := t.gorm.Transaction(func(tx *gorm.DB) error {
@@ -84,10 +76,10 @@ func (t transactionService) Create(ctx context.Context, id uint64, transaction d
 	})
 
 	if err != nil {
-		return domain.Customer{}, err
+		return nil, err
 	}
 
-	return customer, nil
+	return &customer, nil
 }
 
 func NewTransactionService(gorm *gorm.DB) domain.TransactionService {

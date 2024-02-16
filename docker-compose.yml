@@ -24,8 +24,8 @@ services:
     deploy:
       resources:
         limits:
-          cpus: "0.30"
-          memory: "75MB"
+          cpus: "0.2"
+          memory: "60MB"
   api02:
     <<: *api
     container_name: api-rinha-go-02
@@ -62,5 +62,5 @@ services:
     deploy:
       resources:
         limits:
-          cpus: "0.75"
-          memory: "350MB"
+          cpus: "0.95"
+          memory: "405MB"
